@@ -322,7 +322,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:createUploadURL
                                                                 cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
                                                             timeoutInterval:REQUEST_TIMEOUT];
-    [request setHTTPMethod:HTTP_POST];
+    [request setHTTPMethod:HTTP_PATCH];
     [request setHTTPShouldHandleCookies:NO];
     [request setAllHTTPHeaderFields:mutableHeader];
     
