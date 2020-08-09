@@ -66,6 +66,11 @@ typedef void (^TUSUploadProgressBlock)(int64_t bytesWritten, int64_t bytesTotal)
 - (BOOL) resume;
 
 /**
+ uploadFile
+ */
+- (BOOL) uploadFile;
+
+/**
  Lazily instantiate the chunkSize for the upload
  */
 - (void)setChunkSize:(long long)chunkSize;
