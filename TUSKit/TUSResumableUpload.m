@@ -322,6 +322,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:createUploadURL
                                                                 cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
                                                             timeoutInterval:REQUEST_TIMEOUT];
+    [request setAllowsCellularAccess:YES];
     [request setHTTPMethod:HTTP_PATCH];
     [request setHTTPShouldHandleCookies:NO];
     [request setAllHTTPHeaderFields:mutableHeader];
@@ -404,6 +405,10 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
                 weakself.state = TUSResumableUploadStateUploadingFile;
             }
         }
+
+        weakself.uploadUrl = weakself.delegate.createUploadURL;
+        weakself.state = TUSResumableUploadStateUploadingFile;
+
         weakself.idle = YES;
         [weakself.delegate saveUpload:weakself]; // Save current state for reloading - only save when we get a call back, not at the start of one (because this is the only time the state changes)
         #if TARGET_OS_IPHONE
@@ -441,7 +446,7 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:self.uploadUrl
                                                                 cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
                                                             timeoutInterval:REQUEST_TIMEOUT];
-    
+    [request setAllowsCellularAccess:YES];
     [request setHTTPMethod:HTTP_HEAD];
     [request setHTTPShouldHandleCookies:NO];
     [request setAllHTTPHeaderFields:mutableHeader];
@@ -549,7 +554,9 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
     
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:self.uploadUrl
                                                                 cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
-                                                            timeoutInterval:REQUEST_TIMEOUT];
+                                                            timeoutInterval:REQUEST_TIMEOUT
+                                                            ];
+    [request setAllowsCellularAccess:YES];
     [request setHTTPMethod:HTTP_PATCH];
     [request setHTTPShouldHandleCookies:NO];
     [request setAllHTTPHeaderFields:mutableHeader];
@@ -581,9 +588,18 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
             httpResponse = (NSHTTPURLResponse *)response;
         }
         if (error != nil || httpResponse == nil){
-            TUSLog(@"Error or no response during attempt to upload file, checking state");
             // No need to delay, because we are changing states - if there is a network or server error, it will keep delaying there
             weakself.state = TUSResumableUploadStateCheckingFile;
+            TUSLog(@"Error or no response during attempt to upload file, checking state");
+
+            if(error != nil) { 
+                NSLog(@"error-> %@", error);
+                weakself.state = TUSResumableUploadStateCheckingFile;
+                [weakself stop]; 
+            }
+            if (httpResponse != nil) { 
+                TUSLog(@"Invalid status code (%ld) during attempt to upload, checking state", (long)httpResponse.statusCode);
+            }
         } else if (httpResponse.statusCode >= 500 && httpResponse.statusCode < 600) {
             TUSLog(@"Server error, stopping");
             weakself.state = TUSResumableUploadStateCheckingFile;
