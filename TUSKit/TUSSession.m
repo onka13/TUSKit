@@ -67,7 +67,7 @@
         } else {
             sessionConfiguration = _sessionConfiguration;
         }
-        
+        sessionConfiguration.allowsCellularAccess = YES;
         _session = [NSURLSession sessionWithConfiguration:sessionConfiguration delegate:self delegateQueue:[NSOperationQueue mainQueue]];
     }
     return _session;
