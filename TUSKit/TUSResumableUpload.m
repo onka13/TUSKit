@@ -538,8 +538,6 @@ typedef void(^NSURLSessionTaskCompletionHandler)(NSData * _Nullable data, NSURLR
 -(BOOL)uploadFile
 {
     self.state = TUSResumableUploadStateUploadingFile;
- 
-    self.offset = 0; // Reset the offset to zero if we're creating a new file.
     self.uploadUrl = self.delegate.createUploadURL;
     
     NSMutableDictionary *mutableHeader = [NSMutableDictionary dictionary];
